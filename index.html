@@ -27,7 +27,7 @@
     }
   </style>
   <link rel="icon" href="data:,">
-  <!-- Load Auth0 SDK -->
+  <!-- Load Auth0 SDK first -->
   <script src="https://cdn.auth0.com/js/auth0/9.22/auth0.min.js"></script>
 </head>
 <body>
@@ -37,32 +37,33 @@
   </div>
   
   <script>
-    // Initialize Auth0 - outside any event listeners
-    const auth0 = new auth0.WebAuth({
-      domain: 'dev-aveprxzkbqe5w1sl.us.auth0.com',
-      clientID: 'fTTd3g9gdU8WVgHf8TY4VNMssnowxDNb',
-      // Replace with your actual GitHub Pages URL
-      redirectUri: 'https://saipotini.github.io/volunteer-login/',
-      responseType: 'token id_token',
-      scope: 'openid profile email'
-    });
-
-    // Login function - defined globally
-    function performLogin() {
-      console.log("Login button clicked");
-      auth0.authorize();
-    }
-
-    // Handle Auth0 redirect and parse the token
-    function handleAuthentication() {
-      auth0.parseHash(function(err, authResult) {
+    // Wait for the DOM and all scripts to be fully loaded
+    window.addEventListener('load', function() {
+      // Only initialize Auth0 after the script is fully loaded
+      let webAuth = new auth0.WebAuth({
+        domain: 'dev-aveprxzkbqe5w1sl.us.auth0.com',
+        clientID: 'fTTd3g9gdU8WVgHf8TY4VNMssnowxDNb',
+        // Using the specific GitHub Pages URL provided
+        redirectUri: 'https://saipotini.github.io/volunteer-login/',
+        responseType: 'token id_token',
+        scope: 'openid profile email'
+      });
+      
+      // Add click event to login button
+      document.getElementById('loginButton').addEventListener('click', function() {
+        console.log("Login button clicked");
+        webAuth.authorize();
+      });
+      
+      // Check for authentication result
+      webAuth.parseHash(function(err, authResult) {
         if (err) {
           console.log('Authentication error:', err);
           return;
         }
         
         if (authResult && authResult.accessToken && authResult.idToken) {
-          auth0.client.userInfo(authResult.accessToken, function(err, user) {
+          webAuth.client.userInfo(authResult.accessToken, function(err, user) {
             if (err) {
               console.log('Error getting user info:', err);
               return;
@@ -78,15 +79,6 @@
           });
         }
       });
-    }
-
-    // When DOM is fully loaded
-    document.addEventListener('DOMContentLoaded', function() {
-      // Add click event to login button
-      document.getElementById('loginButton').addEventListener('click', performLogin);
-      
-      // Check for authentication result
-      handleAuthentication();
     });
   </script>
 </body>
