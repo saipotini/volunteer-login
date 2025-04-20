@@ -2,7 +2,6 @@
 <html>
 <head>
   <title>Volunteer Login</title>
-  <script src="https://cdn.auth0.com/js/auth0/9.19/auth0.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -27,6 +26,9 @@
       cursor: pointer;
     }
   </style>
+
+  <!-- Optional: Fix the favicon error (you can replace the data URL with your own favicon) -->
+  <link rel="icon" href="data:,">
 </head>
 <body>
   <div class="login-box">
@@ -34,16 +36,21 @@
     <button onclick="login()">Login</button>
   </div>
 
+  <!-- Move the script to the bottom -->
+  <script src="https://cdn.auth0.com/js/auth0/9.22/auth0.min.js"></script>
   <script>
+    // Initialize Auth0
     const auth0 = new auth0.WebAuth({
       domain: 'dev-aveprxzkbqe5w1sl.us.auth0.com',
       clientID: 'fTTd3g9gdU8WVgHf8TY4VNMssnowxDNb',
-      redirectUri: 'https://sites.google.com/view/eravolunteer/login',
+      redirectUri: 'https://saipotini.github.io/volunteer-login/',  // Replace with your GitHub Pages URL
       responseType: 'token id_token',
       scope: 'openid profile email'
     });
 
+    // Login function
     function login() {
+      console.log("Login button clicked");
       auth0.authorize();
     }
 
@@ -60,7 +67,7 @@
               return console.log(err);
             }
 
-            // Display user info
+            // Display user info after login
             document.body.innerHTML = `
               <div class="login-box">
                 <h2>Welcome, ${user.name || user.email}!</h2>
