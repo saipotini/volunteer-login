@@ -25,109 +25,25 @@
       border-radius: 6px;
       cursor: pointer;
     }
-    .message {
-      margin-top: 10px;
-      padding: 10px;
-      border-radius: 4px;
-    }
-    .error {
-      background-color: #ffebee;
-      color: #c62828;
-    }
   </style>
   <link rel="icon" href="data:,">
   <!-- Load Auth0 SDK first -->
   <script src="https://cdn.auth0.com/js/auth0/9.22/auth0.min.js"></script>
-  <!-- Add frame-busting script to prevent clickjacking -->
-  <style>
-    html { display: none; }
-  </style>
-  <script>
-    if (self === top) {
-      document.documentElement.style.display = 'block';
-    } else {
-      top.location = self.location;
-    }
-  </script>
 </head>
 <body>
   <div class="login-box">
     <h2>Volunteer Login</h2>
     <button id="loginButton">Login</button>
-    <div id="messageArea"></div>
   </div>
   
   <script>
     // Wait for the DOM and all scripts to be fully loaded
     window.addEventListener('load', function() {
-      // Helper function to get URL parameters
-      function getUrlParams() {
-        const params = {};
-        const queryString = window.location.search.substring(1);
-        const pairs = queryString.split('&');
-        
-        for (let i = 0; i < pairs.length; i++) {
-          const pair = pairs[i].split('=');
-          params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
-        }
-        return params;
-      }
-      
-      // Helper function to display messages
-      function showMessage(message, isError = false) {
-        const messageArea = document.getElementById('messageArea');
-        messageArea.innerHTML = `<div class="message ${isError ? 'error' : ''}">${message}</div>`;
-      }
-      
-      // Check for third-party initiated login parameters
-      const urlParams = getUrlParams();
-      let loginHint = '';
-      let targetLinkUri = '';
-      
-      // Handle third-party initiated login
-      if (urlParams.iss) {
-        // Verify the issuer is one we trust
-        if (urlParams.iss === 'https://dev-aveprxzkbqe5w1sl.us.auth0.com/') {
-          console.log("Third-party initiated login detected");
-          
-          // Get optional parameters
-          loginHint = urlParams.login_hint || '';
-          
-          // Validate target_link_uri to prevent open redirector attacks
-          if (urlParams.target_link_uri) {
-            try {
-              const targetUrl = new URL(urlParams.target_link_uri);
-              // Only allow redirects to trusted domains
-              const trustedDomains = [
-                'saipotini.github.io',
-                // Add other trusted domains here
-              ];
-              
-              if (trustedDomains.includes(targetUrl.hostname)) {
-                targetLinkUri = urlParams.target_link_uri;
-              } else {
-                console.log("Untrusted redirect target detected:", targetUrl.hostname);
-                showMessage("Invalid redirect target detected.", true);
-              }
-            } catch (e) {
-              console.log("Invalid target_link_uri:", e);
-            }
-          }
-          
-          // Auto-initiate login if from trusted issuer
-          setTimeout(function() {
-            document.getElementById('loginButton').click();
-          }, 1000);
-        } else {
-          showMessage("Invalid issuer.", true);
-          console.log("Untrusted issuer:", urlParams.iss);
-        }
-      }
-      
-      // Initialize Auth0
+      // Only initialize Auth0 after the script is fully loaded
       let webAuth = new auth0.WebAuth({
         domain: 'dev-aveprxzkbqe5w1sl.us.auth0.com',
         clientID: 'fTTd3g9gdU8WVgHf8TY4VNMssnowxDNb',
+        // Using the specific GitHub Pages URL provided
         redirectUri: 'https://saipotini.github.io/volunteer-login/',
         responseType: 'token id_token',
         scope: 'openid profile email'
@@ -136,29 +52,13 @@
       // Add click event to login button
       document.getElementById('loginButton').addEventListener('click', function() {
         console.log("Login button clicked");
-        
-        // Prepare login options
-        const loginOptions = {};
-        
-        // Add login_hint if provided
-        if (loginHint) {
-          loginOptions.login_hint = loginHint;
-        }
-        
-        // Add state parameter with target_link_uri if needed
-        if (targetLinkUri) {
-          loginOptions.state = JSON.stringify({ target_link_uri: targetLinkUri });
-        }
-        
-        // Initiate Auth0 authentication with options
-        webAuth.authorize(loginOptions);
+        webAuth.authorize();
       });
       
       // Check for authentication result
       webAuth.parseHash(function(err, authResult) {
         if (err) {
           console.log('Authentication error:', err);
-          showMessage("Authentication failed. Please try again.", true);
           return;
         }
         
@@ -166,40 +66,16 @@
           webAuth.client.userInfo(authResult.accessToken, function(err, user) {
             if (err) {
               console.log('Error getting user info:', err);
-              showMessage("Failed to get user information.", true);
               return;
             }
             
-            // Check if we need to redirect to a target link URI
-            let redirectTarget = null;
-            if (authResult.state) {
-              try {
-                const stateObj = JSON.parse(authResult.state);
-                if (stateObj.target_link_uri) {
-                  redirectTarget = stateObj.target_link_uri;
-                }
-              } catch (e) {
-                console.log("Error parsing state:", e);
-              }
-            }
-            
-            if (redirectTarget) {
-              // Add user info as query parameters
-              const redirectUrl = new URL(redirectTarget);
-              redirectUrl.searchParams.append('user_email', user.email || '');
-              redirectUrl.searchParams.append('user_name', user.name || '');
-              
-              // Redirect to the target URL
-              window.location.href = redirectUrl.toString();
-            } else {
-              // Display user info after login
-              document.body.innerHTML = `
-                <div class="login-box">
-                  <h2>Welcome, ${user.name || user.email}!</h2>
-                  <p>You are now logged in as <strong>${user.email}</strong>.</p>
-                </div>
-              `;
-            }
+            // Display user info after login
+            document.body.innerHTML = `
+              <div class="login-box">
+                <h2>Welcome, ${user.name || user.email}!</h2>
+                <p>You are now logged in as <strong>${user.email}</strong>.</p>
+              </div>
+            `;
           });
         }
       });
