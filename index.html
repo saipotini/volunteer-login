@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Volunteer Login</title>
+  <script src="https://cdn.auth0.com/js/auth0/9.19/auth0.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      text-align: center;
+      margin-top: 10%;
+    }
+    .login-box {
+      padding: 40px;
+      background: white;
+      display: inline-block;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    button {
+      background-color: #007bff;
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Volunteer Login</h2>
+    <button onclick="login()">Login</button>
+  </div>
+
+  <script>
+    const auth0 = new auth0.WebAuth({
+      domain: 'dev-aveprxzkbqe5w1sl.us.auth0.com',
+      clientID: 'fTTd3g9gdU8WVgHf8TY4VNMssnowxDNb',
+      redirectUri: 'https://sites.google.com/view/eravolunteer/login',
+      responseType: 'token id_token',
+      scope: 'openid profile email'
+    });
+
+    function login() {
+      auth0.authorize();
+    }
+
+    // Handle Auth0 redirect and parse the token
+    window.addEventListener('load', function () {
+      auth0.parseHash(function (err, authResult) {
+        if (err) {
+          return console.log(err);
+        }
+
+        if (authResult && authResult.accessToken && authResult.idToken) {
+          auth0.client.userInfo(authResult.accessToken, function (err, user) {
+            if (err) {
+              return console.log(err);
+            }
+
+            // Display user info
+            document.body.innerHTML = `
+              <div class="login-box">
+                <h2>Welcome, ${user.name || user.email}!</h2>
+                <p>You are now logged in as <strong>${user.email}</strong>.</p>
+              </div>
+            `;
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
