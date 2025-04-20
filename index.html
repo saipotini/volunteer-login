@@ -26,60 +26,67 @@
       cursor: pointer;
     }
   </style>
-
-  <!-- Optional: Fix the favicon error (you can replace the data URL with your own favicon) -->
   <link rel="icon" href="data:,">
+  <!-- Load Auth0 SDK -->
+  <script src="https://cdn.auth0.com/js/auth0/9.22/auth0.min.js"></script>
 </head>
 <body>
   <div class="login-box">
     <h2>Volunteer Login</h2>
-    <button onclick="login()">Login</button>
+    <button id="loginButton">Login</button>
   </div>
-
-  <!-- Move the script to the bottom -->
-  <script src="https://cdn.auth0.com/js/auth0/9.22/auth0.min.js"></script>
+  
   <script>
-    // Wait for the script to fully load before initializing auth0
-    window.addEventListener('load', function() {
-      // Initialize Auth0
-      const auth0 = new auth0.WebAuth({
-        domain: 'dev-aveprxzkbqe5w1sl.us.auth0.com',
-        clientID: 'fTTd3g9gdU8WVgHf8TY4VNMssnowxDNb',
-        redirectUri: 'https://<your-username>.github.io/volunteer-login/',  // Replace with your GitHub Pages URL
-        responseType: 'token id_token',
-        scope: 'openid profile email'
+    // Initialize Auth0 - outside any event listeners
+    const auth0 = new auth0.WebAuth({
+      domain: 'dev-aveprxzkbqe5w1sl.us.auth0.com',
+      clientID: 'fTTd3g9gdU8WVgHf8TY4VNMssnowxDNb',
+      // Replace with your actual GitHub Pages URL
+      redirectUri: 'https://saipotini.github.io/volunteer-login/',
+      responseType: 'token id_token',
+      scope: 'openid profile email'
+    });
+
+    // Login function - defined globally
+    function performLogin() {
+      console.log("Login button clicked");
+      auth0.authorize();
+    }
+
+    // Handle Auth0 redirect and parse the token
+    function handleAuthentication() {
+      auth0.parseHash(function(err, authResult) {
+        if (err) {
+          console.log('Authentication error:', err);
+          return;
+        }
+        
+        if (authResult && authResult.accessToken && authResult.idToken) {
+          auth0.client.userInfo(authResult.accessToken, function(err, user) {
+            if (err) {
+              console.log('Error getting user info:', err);
+              return;
+            }
+            
+            // Display user info after login
+            document.body.innerHTML = `
+              <div class="login-box">
+                <h2>Welcome, ${user.name || user.email}!</h2>
+                <p>You are now logged in as <strong>${user.email}</strong>.</p>
+              </div>
+            `;
+          });
+        }
       });
+    }
 
-      // Login function
-      function login() {
-        console.log("Login button clicked");
-        auth0.authorize();
-      }
-
-      // Handle Auth0 redirect and parse the token
-      window.addEventListener('load', function () {
-        auth0.parseHash(function (err, authResult) {
-          if (err) {
-            return console.log(err);
-          }
-
-          if (authResult && authResult.accessToken && authResult.idToken) {
-            auth0.client.userInfo(authResult.accessToken, function (err, user) {
-              if (err) {
-                return console.log(err);
-              }
-
-              // Display user info after login
-              document.body.innerHTML = `
-                <div class="login-box">
-                  <h2>Welcome, ${user.name || user.email}!</h2>
-                  <p>You are now logged in as <strong>${user.email}</strong>.</p>
-                </div>
-              `;
-            });
-          }
-        });
-      });
+    // When DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add click event to login button
+      document.getElementById('loginButton').addEventListener('click', performLogin);
+      
+      // Check for authentication result
+      handleAuthentication();
     });
   </script>
 </body>
