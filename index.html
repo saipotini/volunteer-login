@@ -39,43 +39,46 @@
   <!-- Move the script to the bottom -->
   <script src="https://cdn.auth0.com/js/auth0/9.22/auth0.min.js"></script>
   <script>
-    // Initialize Auth0
-    const auth0 = new auth0.WebAuth({
-      domain: 'dev-aveprxzkbqe5w1sl.us.auth0.com',
-      clientID: 'fTTd3g9gdU8WVgHf8TY4VNMssnowxDNb',
-      redirectUri: 'https://saipotini.github.io/volunteer-login/',  // Replace with your GitHub Pages URL
-      responseType: 'token id_token',
-      scope: 'openid profile email'
-    });
+    // Wait for the script to fully load before initializing auth0
+    window.addEventListener('load', function() {
+      // Initialize Auth0
+      const auth0 = new auth0.WebAuth({
+        domain: 'dev-aveprxzkbqe5w1sl.us.auth0.com',
+        clientID: 'fTTd3g9gdU8WVgHf8TY4VNMssnowxDNb',
+        redirectUri: 'https://<your-username>.github.io/volunteer-login/',  // Replace with your GitHub Pages URL
+        responseType: 'token id_token',
+        scope: 'openid profile email'
+      });
 
-    // Login function
-    function login() {
-      console.log("Login button clicked");
-      auth0.authorize();
-    }
+      // Login function
+      function login() {
+        console.log("Login button clicked");
+        auth0.authorize();
+      }
 
-    // Handle Auth0 redirect and parse the token
-    window.addEventListener('load', function () {
-      auth0.parseHash(function (err, authResult) {
-        if (err) {
-          return console.log(err);
-        }
+      // Handle Auth0 redirect and parse the token
+      window.addEventListener('load', function () {
+        auth0.parseHash(function (err, authResult) {
+          if (err) {
+            return console.log(err);
+          }
 
-        if (authResult && authResult.accessToken && authResult.idToken) {
-          auth0.client.userInfo(authResult.accessToken, function (err, user) {
-            if (err) {
-              return console.log(err);
-            }
+          if (authResult && authResult.accessToken && authResult.idToken) {
+            auth0.client.userInfo(authResult.accessToken, function (err, user) {
+              if (err) {
+                return console.log(err);
+              }
 
-            // Display user info after login
-            document.body.innerHTML = `
-              <div class="login-box">
-                <h2>Welcome, ${user.name || user.email}!</h2>
-                <p>You are now logged in as <strong>${user.email}</strong>.</p>
-              </div>
-            `;
-          });
-        }
+              // Display user info after login
+              document.body.innerHTML = `
+                <div class="login-box">
+                  <h2>Welcome, ${user.name || user.email}!</h2>
+                  <p>You are now logged in as <strong>${user.email}</strong>.</p>
+                </div>
+              `;
+            });
+          }
+        });
       });
     });
   </script>
